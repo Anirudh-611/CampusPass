@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 // Config & Database
 dotenv.config();
 import { connectDB } from './config/db.js';
-import { seedDefaultAdmin } from './utils/seedAdmin.js';
+import { seedDefaultData } from './utils/seedData.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 import { AppError } from './utils/customError.js';
 
@@ -115,7 +115,7 @@ const startServer = async () => {
   // Initiate database connection asynchronously
   connectDB().then(async () => {
     if (mongoose.connection.readyState === 1) {
-      await seedDefaultAdmin();
+      await seedDefaultData();
     }
   });
 
