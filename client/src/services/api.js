@@ -5,7 +5,9 @@ import axios from 'axios';
  * Configured with base URL, timeout, and automatic JWT injection.
  */
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
+    : '/api',
   headers: {
     'Content-Type': 'application/json',
   },
