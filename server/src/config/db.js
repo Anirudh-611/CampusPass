@@ -1,14 +1,27 @@
 import mongoose from 'mongoose';
+import dns from 'node:dns';
+
+// Configure reliable DNS servers to prevent Windows querySrv ECONNREFUSED on Atlas SRV records
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // Ignore in environments where setting DNS servers is restricted
+}
 
 /**
  * Initializes and manages the MongoDB connection lifecycle.
  */
 export const connectDB = async () => {
-  const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/campuspass';
+  let mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/campuspass';
+
+  // Automatically attach database name and write parameters if omitted
+  if (mongoURI.startsWith('mongodb+srv://') && mongoURI.endsWith('/')) {
+    mongoURI = `${mongoURI}campuspass?retryWrites=true&w=majority`;
+  }
 
   try {
     const conn = await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of hanging indefinitely
+      serverSelectionTimeoutMS: 8000,
     });
 
     console.log(`[MongoDB] Connected successfully to host: ${conn.connection.host}`);
@@ -16,7 +29,7 @@ export const connectDB = async () => {
   } catch (error) {
     console.error(`[MongoDB Connection Error]: ${error.message}`);
     console.warn(`[MongoDB Warning] Could not connect to MongoDB at ${mongoURI}`);
-    console.warn(`[MongoDB Tip] Ensure your local MongoDB service is running, or set MONGO_URI in server/.env to your MongoDB Atlas connection string.`);
+    console.warn(`[MongoDB Tip] Ensure your MongoDB Atlas user credentials and Network Access (IP whitelist 0.0.0.0/0) are active.`);
   }
 
   // Lifecycle Event Listeners
